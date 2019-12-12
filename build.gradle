@@ -1,0 +1,52 @@
+plugins {
+    id 'de.undercouch.download' version '3.1.1'
+    id 'maven-publish'
+}
+
+import de.undercouch.gradle.tasks.download.Download
+
+group 'com.jetbrains.jdk'
+
+for (platform in ['osx', 'windows', 'linux']) {
+
+    def capitalizedPlatform = platform.capitalize()
+    def platformClassifier = "${platform}-x64"
+
+    for (distroType in ['jbr', 'jbrsdk']) {
+
+        def capitalizedDistroType = distroType.capitalize()
+
+        def downloadTask = tasks.create(name: 'get' + capitalizedDistroType + capitalizedPlatform, type: Download) {
+            def fileName = "${distroType}-${jdk_version}-${platformClassifier}-${jdk_build}.tar.gz"
+            src "https://dl.bintray.com/jetbrains/intellij-jbr/$fileName"
+            dest "$buildDir/$fileName"
+            overwrite false
+        }
+
+        publishing {
+            publications.create(capitalizedDistroType + capitalizedPlatform, MavenPublication) {
+                artifact(downloadTask.dest) {
+                    classifier platformClassifier
+                    builtBy downloadTask
+                    extension 'tgz'
+                }
+                artifactId distroType
+                version "${jdk_version}-${jdk_build}"
+            }
+        }
+    }
+}
+
+publishing {
+    repositories {
+        maven {
+            if (project.hasProperty('nexusUsername')) {
+                credentials {
+                    username project.getProperty('nexusUsername')
+                    password project.getProperty('nexusPassword')
+                }
+            }
+            url project.findProperty('repository') ?: 'https://projects.itemis.de/nexus/content/repositories/mbeddr'
+        }
+    }
+}
