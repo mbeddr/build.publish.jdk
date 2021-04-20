@@ -12,7 +12,7 @@ for (platform in ['osx', 'windows', 'linux']) {
     def capitalizedPlatform = platform.capitalize()
     def platformClassifier = "${platform}-x64"
 
-    for (distroType in ['jbr', 'jbrsdk']) {
+    for (distroType in ['jbr_nomod', 'jbr', 'jbrsdk']) {
 
         def capitalizedDistroType = distroType.capitalize()
 
