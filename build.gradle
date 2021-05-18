@@ -12,10 +12,12 @@ def supportedPlatforms = ['osx', 'windows', 'linux']
 def distroTypes = ['jbr_jcef', 'jbr_nomod', 'jbrsdk']
 
 
+
 for (platform in supportedPlatforms) {
 
     def capitalizedPlatform = platform.capitalize()
     for (distroType in distroTypes) {
+
 
         def capitalizedDistroType = distroType.capitalize()
         def supportedArchitectures = supportedArch(platform, distroType)
