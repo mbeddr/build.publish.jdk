@@ -8,6 +8,7 @@ on:
     branches:
       # Only on push events on master branch
       - master
+      - mps/2020.3
 
 jobs:
   build:
