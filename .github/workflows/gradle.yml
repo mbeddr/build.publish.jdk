@@ -6,8 +6,9 @@ name: Java CI with Gradle
 on:
   push:
     branches:
-      # Only on push events on master branch
+      # Only on push events on master and mps branches
       - master
+      - mps/*
 
 jobs:
   build:
