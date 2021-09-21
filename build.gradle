@@ -81,28 +81,44 @@ private List<String> supportedArch(platform, distroType) {
 }
 
 publishing {
-    repositories {
-        maven {
-            if (project.hasProperty('nexusUsername')) {
-                credentials {
-                    username project.getProperty('nexusUsername')
-                    password project.getProperty('nexusPassword')
-                }
-            }
-            url project.findProperty('repository') ?: 'https://projects.itemis.de/nexus/content/repositories/mbeddr'
-        }
-    }
+    // repositories {
+    //     maven {
+    //         if (project.hasProperty('nexusUsername')) {
+    //             credentials {
+    //                 username project.getProperty('nexusUsername')
+    //                 password project.getProperty('nexusPassword')
+    //             }
+    //         }
+    //         url project.findProperty('repository') ?: 'https://projects.itemis.de/nexus/content/repositories/mbeddr'
+    //     }
+    // }
 
     repositories {
-        maven {
-            name = "GitHubPackages"
-            url = uri("https://maven.pkg.github.com/mbeddr/build.publish.jdk")
-            if(project.hasProperty("gpr.token")) {
-                credentials {
-                    username = project.findProperty("gpr.user")
-                    password = project.findProperty("gpr.token")
+        if(getCurrentGitBranch() == "master" || getCurrentGitBranch().startsWith("release-v")) {
+            maven {
+                name = "GitHubPackages"
+                url = uri("https://maven.pkg.github.com/mbeddr/build.publish.jdk")
+                if(project.hasProperty("gpr.token")) {
+                    credentials {
+                        username = project.findProperty("gpr.user")
+                        password = project.findProperty("gpr.token")
+                    }
                 }
             }
         }
     }
+}
+
+private String getCurrentGitBranch() {
+    def gitBranch = "Unknown branch"
+    try {
+        def workingDir = new File("${project.projectDir}")
+        def result = 'git rev-parse --abbrev-ref HEAD'.execute(null, workingDir)
+        result.waitFor()
+        if (result.exitValue() == 0) {
+            gitBranch = result.text.trim()
+        }
+    } catch (e) {
+    }
+    return gitBranch
 }
