@@ -20,6 +20,7 @@ for (someJDKVersion in actual_jdk_map) {
     // println "JDK Version: $someJDKVersion.key"
     for (jdk_build in someJDKVersion.value) {
         // println "JDK Version-Build: $currentJDKVersion - $currentJDKBuild"
+        def currentVersionBuildClassifier = jdk_version + "-" + jdk_build
 
         for (platform in supportedPlatforms) {
 
@@ -31,8 +32,7 @@ for (someJDKVersion in actual_jdk_map) {
                 def supportedArchitectures = supportedArch(platform, distroType)
 
                 for (platformClassifier in supportedArchitectures) {
-
-                    def downloadTask = tasks.create(name: downloadTaskName(capitalizedDistroType, capitalizedPlatform, platformClassifier), type: Download) {
+                    def downloadTask = tasks.create(name: downloadTaskName(capitalizedDistroType, capitalizedPlatform, platformClassifier, currentVersionBuildClassifier ), type: Download) {
                         def fileName = "${distroType}-${jdk_version}-${platformClassifier}-${jdk_build}.tar.gz"
                         if(platform == 'linux' && distroType == 'jbr_nomod' && platformClassifier.endsWith("aarch64")) {
                             fileName = "jbr-${jdk_version}-${platformClassifier}-${jdk_build}.tar.gz"
@@ -50,10 +50,10 @@ for (someJDKVersion in actual_jdk_map) {
 
         publishing {
             for(distroType in distroTypes) {
-                publications.create(distroType, MavenPublication) {
+                publications.create(distroType+"-"+jdk_version+jdk_build, MavenPublication) {
                     for(platform in supportedPlatforms) {
                         for(platformClassifier in supportedArch(platform, distroType)) {
-                            def downloadTask = tasks.getByName(downloadTaskName(distroType.capitalize(),platform.capitalize(), platformClassifier))
+                            def downloadTask = tasks.getByName(downloadTaskName(distroType.capitalize(),platform.capitalize(), platformClassifier, currentVersionBuildClassifier ))
                             artifact(downloadTask.dest) {
                                 classifier platformClassifier
                                 builtBy downloadTask
@@ -71,8 +71,8 @@ for (someJDKVersion in actual_jdk_map) {
 }
 
 
-private String downloadTaskName(capitalizedDistroType, capitalizedPlatform, platformClassifier) {
-    'get' + capitalizedDistroType + capitalizedPlatform + platformClassifier
+private String downloadTaskName(capitalizedDistroType, capitalizedPlatform, platformClassifier, versionBuildClassifier) {
+    'get' + capitalizedDistroType + capitalizedPlatform + platformClassifier + versionBuildClassifier
 }
 
 private List<String> supportedArch(platform, distroType) {
