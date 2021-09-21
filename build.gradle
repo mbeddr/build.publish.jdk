@@ -17,27 +17,22 @@ def actual_jdk_map = slurper.parseText(jdk_map)
 
 for (someJDKVersion in actual_jdk_map) {
     def jdk_version = someJDKVersion.key
-    // println "JDK Version: $someJDKVersion.key"
     for (jdk_build in someJDKVersion.value) {
-        // println "JDK Version-Build: $currentJDKVersion - $currentJDKBuild"
         def currentVersionBuildClassifier = jdk_version + "-" + jdk_build
+        logger.warn(jdk_version + "-" + jdk_build)
 
+        // actual downloading
         for (platform in supportedPlatforms) {
-
             def capitalizedPlatform = platform.capitalize()
             for (distroType in distroTypes) {
-
-
                 def capitalizedDistroType = distroType.capitalize()
                 def supportedArchitectures = supportedArch(platform, distroType)
-
                 for (platformClassifier in supportedArchitectures) {
                     def downloadTask = tasks.create(name: downloadTaskName(capitalizedDistroType, capitalizedPlatform, platformClassifier, currentVersionBuildClassifier ), type: Download) {
                         def fileName = "${distroType}-${jdk_version}-${platformClassifier}-${jdk_build}.tar.gz"
                         if(platform == 'linux' && distroType == 'jbr_nomod' && platformClassifier.endsWith("aarch64")) {
                             fileName = "jbr-${jdk_version}-${platformClassifier}-${jdk_build}.tar.gz"
                         }
-
                         logger.warn("https://cache-redirector.jetbrains.com/intellij-jbr/$fileName")
                         src "https://cache-redirector.jetbrains.com/intellij-jbr/$fileName"
                         //src "https://cache-redirector.jetbrains.com/intellij-jbr/$fileName"
@@ -48,6 +43,7 @@ for (someJDKVersion in actual_jdk_map) {
             }
         }
 
+        // actual publishing
         publishing {
             for(distroType in distroTypes) {
                 publications.create(distroType+"-"+jdk_version+jdk_build, MavenPublication) {
@@ -58,7 +54,6 @@ for (someJDKVersion in actual_jdk_map) {
                                 classifier platformClassifier
                                 builtBy downloadTask
                                 extension 'tgz'
-
                             }
                         }
                     }
@@ -69,7 +64,6 @@ for (someJDKVersion in actual_jdk_map) {
         }
     }
 }
-
 
 private String downloadTaskName(capitalizedDistroType, capitalizedPlatform, platformClassifier, versionBuildClassifier) {
     'get' + capitalizedDistroType + capitalizedPlatform + platformClassifier + versionBuildClassifier
