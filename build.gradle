@@ -94,7 +94,7 @@ publishing {
     // }
 
     repositories {
-        if(getCurrentGitBranch() == "master" || getCurrentGitBranch().startsWith("release-v")) {
+        if(getCurrentGitBranch() == "master" || getCurrentGitBranch().startsWith("publish/v")) {
             maven {
                 name = "GitHubPackages"
                 url = uri("https://maven.pkg.github.com/mbeddr/build.publish.jdk")
