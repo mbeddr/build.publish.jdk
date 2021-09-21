@@ -11,54 +11,65 @@ def supportedPlatforms = ['osx', 'windows', 'linux']
 /* the JBR distro is only available on linux aarch 64  for what ever reason JetBrains decided to not use the "nomod" distro type in that case*/
 def distroTypes = ['jbr_jcef', 'jbr_nomod', 'jbrsdk']
 
+// parse the versions to install
+def slurper = new groovy.json.JsonSlurper()
+def actual_jdk_map = slurper.parseText(jdk_map)
+
+for (someJDKVersion in actual_jdk_map) {
+    def jdk_version = someJDKVersion.key
+    // println "JDK Version: $someJDKVersion.key"
+    for (jdk_build in someJDKVersion.value) {
+        // println "JDK Version-Build: $currentJDKVersion - $currentJDKBuild"
+
+        for (platform in supportedPlatforms) {
+
+            def capitalizedPlatform = platform.capitalize()
+            for (distroType in distroTypes) {
 
 
-for (platform in supportedPlatforms) {
+                def capitalizedDistroType = distroType.capitalize()
+                def supportedArchitectures = supportedArch(platform, distroType)
 
-    def capitalizedPlatform = platform.capitalize()
-    for (distroType in distroTypes) {
+                for (platformClassifier in supportedArchitectures) {
 
+                    def downloadTask = tasks.create(name: downloadTaskName(capitalizedDistroType, capitalizedPlatform, platformClassifier), type: Download) {
+                        def fileName = "${distroType}-${jdk_version}-${platformClassifier}-${jdk_build}.tar.gz"
+                        if(platform == 'linux' && distroType == 'jbr_nomod' && platformClassifier.endsWith("aarch64")) {
+                            fileName = "jbr-${jdk_version}-${platformClassifier}-${jdk_build}.tar.gz"
+                        }
 
-        def capitalizedDistroType = distroType.capitalize()
-        def supportedArchitectures = supportedArch(platform, distroType)
-
-        for (platformClassifier in supportedArchitectures) {
-
-            def downloadTask = tasks.create(name: downloadTaskName(capitalizedDistroType, capitalizedPlatform, platformClassifier), type: Download) {
-                def fileName = "${distroType}-${jdk_version}-${platformClassifier}-${jdk_build}.tar.gz"
-                if(platform == 'linux' && distroType == 'jbr_nomod' && platformClassifier.endsWith("aarch64")) {
-                    fileName = "jbr-${jdk_version}-${platformClassifier}-${jdk_build}.tar.gz"
-                }
-
-                logger.warn("https://cache-redirector.jetbrains.com/intellij-jbr/$fileName")
-                src "https://cache-redirector.jetbrains.com/intellij-jbr/$fileName"
-                //src "https://cache-redirector.jetbrains.com/intellij-jbr/$fileName"
-                dest "$buildDir/$fileName"
-                overwrite false
-            }
-        }
-    }
-}
-
-publishing {
-    for(distroType in distroTypes) {
-        publications.create(distroType, MavenPublication) {
-            for(platform in supportedPlatforms) {
-                for(platformClassifier in supportedArch(platform, distroType)) {
-                    def downloadTask = tasks.getByName(downloadTaskName(distroType.capitalize(),platform.capitalize(), platformClassifier))
-                    artifact(downloadTask.dest) {
-                        classifier platformClassifier
-                        builtBy downloadTask
-                        extension 'tgz'
-
+                        logger.warn("https://cache-redirector.jetbrains.com/intellij-jbr/$fileName")
+                        src "https://cache-redirector.jetbrains.com/intellij-jbr/$fileName"
+                        //src "https://cache-redirector.jetbrains.com/intellij-jbr/$fileName"
+                        dest "$buildDir/$fileName"
+                        overwrite false
                     }
                 }
             }
-            artifactId distroType
-            version "${jdk_version}-${jdk_build}"
+        }
+
+        publishing {
+            for(distroType in distroTypes) {
+                publications.create(distroType, MavenPublication) {
+                    for(platform in supportedPlatforms) {
+                        for(platformClassifier in supportedArch(platform, distroType)) {
+                            def downloadTask = tasks.getByName(downloadTaskName(distroType.capitalize(),platform.capitalize(), platformClassifier))
+                            artifact(downloadTask.dest) {
+                                classifier platformClassifier
+                                builtBy downloadTask
+                                extension 'tgz'
+
+                            }
+                        }
+                    }
+                    artifactId distroType
+                    version "${jdk_version}-${jdk_build}"
+                }
+            }
         }
     }
 }
+
 
 private String downloadTaskName(capitalizedDistroType, capitalizedPlatform, platformClassifier) {
     'get' + capitalizedDistroType + capitalizedPlatform + platformClassifier
