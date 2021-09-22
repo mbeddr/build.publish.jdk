@@ -9,7 +9,7 @@ group 'com.jetbrains.jdk'
 
 def supportedPlatforms = ['osx', 'windows', 'linux']
 /* the JBR distro is only available on linux aarch 64  for what ever reason JetBrains decided to not use the "nomod" distro type in that case*/
-def distroTypes = ['jbr_jcef', 'jbr_nomod', 'jbrsdk']
+def distroTypes = ['jbr', 'jbr_jcef', 'jbr_nomod', 'jbrsdk']
 
 // parse the versions to install
 def slurper = new groovy.json.JsonSlurper()
