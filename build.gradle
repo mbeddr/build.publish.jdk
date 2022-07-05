@@ -64,7 +64,7 @@ publishing {
            
             maven {
                 name = "GitHubPackages"
-                url = uri("https://maven.pkg.github.com/mbeddr/build.publish.mps")
+                url = uri("https://maven.pkg.github.com/mbeddr/build.publish.jdk")
                 if(project.hasProperty("gpr.token")) {
                     credentials {
                         username = project.findProperty("gpr.user")
