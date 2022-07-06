@@ -18,7 +18,7 @@ for (platform in ['osx', 'windows', 'linux']) {
 
         def downloadTask = tasks.create(name: 'get' + capitalizedDistroType + capitalizedPlatform, type: Download) {
             def fileName = "${distroType}-${jdk_version}-${platformClassifier}-${jdk_build}.tar.gz"
-            src "https://dl.bintray.com/jetbrains/intellij-jbr/$fileName"
+            src "https://cache-redirector.jetbrains.com/intellij-jbr/$fileName"
             dest "$buildDir/$fileName"
             overwrite false
         }
