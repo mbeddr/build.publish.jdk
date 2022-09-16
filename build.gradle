@@ -82,15 +82,6 @@ private List<String> supportedArch(platform, distroType) {
 
 publishing {
     repositories {
-        maven {
-            if (project.hasProperty('nexusUsername')) {
-                credentials {
-                    username project.getProperty('nexusUsername')
-                    password project.getProperty('nexusPassword')
-                }
-            }
-            url project.findProperty('repository') ?: 'https://projects.itemis.de/nexus/content/repositories/mbeddr'
-        }
         repositories {
             maven {
                 name = "itemisCloud"
