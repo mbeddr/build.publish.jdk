@@ -8,8 +8,8 @@ import de.undercouch.gradle.tasks.download.Download
 group 'com.jetbrains.jdk'
 
 def supportedPlatforms = ['osx', 'windows', 'linux']
-/* the JBR distro is only available on linux aarch 64  for what ever reason JetBrains decided to not use the "nomod" distro type in that case*/
-def distroTypes = ['jbr_jcef', 'jbr_nomod', 'jbrsdk']
+
+def distroTypes = ['jbr_jcef', 'jbr', 'jbrsdk']
 
 
 
@@ -26,9 +26,6 @@ for (platform in supportedPlatforms) {
 
             def downloadTask = tasks.create(name: downloadTaskName(capitalizedDistroType, capitalizedPlatform, platformClassifier), type: Download) {
                 def fileName = "${distroType}-${jdk_version}-${platformClassifier}-${jdk_build}.tar.gz"
-                if(platform == 'linux' && distroType == 'jbr_nomod' && platformClassifier.endsWith("aarch64")) {
-                    fileName = "jbr-${jdk_version}-${platformClassifier}-${jdk_build}.tar.gz"
-                }
 
                 logger.warn("https://cache-redirector.jetbrains.com/intellij-jbr/$fileName")
                 src "https://cache-redirector.jetbrains.com/intellij-jbr/$fileName"
@@ -71,8 +68,8 @@ private List<String> supportedArch(platform, distroType) {
     } else if (platform == 'windows') {
         return ["${platform}-x64"]
     } else if (platform == 'linux') {
-        if(distroType == 'jbr_nomod'|| distroType == 'jbrsdk') {
-            return ["${platform}-x64"/*, "${platform}-aarch64"*/]
+        if(distroType == 'jbr'|| distroType == 'jbrsdk') {
+            return ["${platform}-x64", "${platform}-aarch64"]
         } else {
             return ["${platform}-x64"]
         }
