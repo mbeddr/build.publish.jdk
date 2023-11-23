@@ -68,11 +68,7 @@ private List<String> supportedArch(platform, distroType) {
     } else if (platform == 'windows') {
         return ["${platform}-x64"]
     } else if (platform == 'linux') {
-        if(distroType == 'jbr'|| distroType == 'jbrsdk') {
-            return ["${platform}-x64", "${platform}-aarch64"]
-        } else {
-            return ["${platform}-x64"]
-        }
+        return ["${platform}-x64", "${platform}-aarch64"]
     }
     throw new GradleException("unsupported platform")
 }
