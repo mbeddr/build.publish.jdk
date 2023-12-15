@@ -53,6 +53,38 @@ publishing {
             }
             artifactId distroType
             version "${jdk_version}-${jdk_build}"
+            pom {
+                licenses {
+                    // official SPDX identifier
+                    // see https://spdx.org/licenses/ for list
+                    license {
+                        name = "GPL-2.0-only"
+                        url = "https://github.com/JetBrains/JetBrainsRuntime/blob/jb${jdk_version}-${jdk_build}/LICENSE"
+                        comments = "GNU GENERAL PUBLIC LICENSE Version 2, June 1991"
+                        distribution = "repo"
+                    }
+                    license {
+                        name = "WITH Classpath-exception-2.0"
+                        url = "https://github.com/JetBrains/JetBrainsRuntime/blob/jb${jdk_version}-${jdk_build}/ADDITIONAL_LICENSE"
+                        comments = "Oracle Classpath exception 2.0"
+                        distribution = "repo"
+                    }
+                    license {
+                        name = "WITH OpenJDK-assembly-exception-1.0"
+                        url = "https://github.com/JetBrains/JetBrainsRuntime/blob/jb${jdk_version}-${jdk_build}/ASSEMBLY_EXCEPTION"
+                        comments = "OpenJDK Assembly exception 1.0"
+                        distribution = "repo"
+                    }
+                }
+                organization {
+                    name = "JetBrains s.r.o"
+                    url = "https://www.jetbrains.com"
+                }
+                scm {
+                    tag = "jb${jdk_version}-${jdk_build}"
+                    url = "https.//github.com/JetBrains/JetBrainsRuntime.git"
+                }
+            }
         }
     }
 }
