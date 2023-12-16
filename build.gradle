@@ -65,7 +65,7 @@ publishing {
                     }
                     license {
                         name = "WITH Classpath-exception-2.0"
-                        url = "https://github.com/JetBrains/JetBrainsRuntime/blob/jb${jdk_version}-${jdk_build}/ADDITIONAL_LICENSE"
+                        url = "https://github.com/JetBrains/JetBrainsRuntime/blob/jb${jdk_version}-${jdk_build}/ADDITIONAL_LICENSE_INFO"
                         comments = "Oracle Classpath exception 2.0"
                         distribution = "repo"
                     }
