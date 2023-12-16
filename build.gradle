@@ -82,7 +82,7 @@ publishing {
                 }
                 scm {
                     tag = "jb${jdk_version}-${jdk_build}"
-                    url = "https.//github.com/JetBrains/JetBrainsRuntime.git"
+                    url = "https://github.com/JetBrains/JetBrainsRuntime.git"
                 }
             }
         }
