@@ -11,13 +11,6 @@
 
 [![Github pages](https://img.shields.io/badge/Github-pages-success)](https://github.com/orgs/mbeddr/packages?repo_name=build.publish.mps)
 
-## projects.itemis.de (deprecated)
-
-[![projects.itemis.de: jbr](https://img.shields.io/badge/dynamic/xml?url=https://projects.itemis.de/nexus/content/repositories/mbeddr/com/jetbrains/jdk/jbr/maven-metadata.xml&label=jbr&color=inactive&query=.//versioning/latest)](https://projects.itemis.de/nexus/#nexus-search;gav~com.jetbrains.jdk~jbr~~~)
-[![projects.itemis.de: jbr jcef](https://img.shields.io/badge/dynamic/xml?url=https://projects.itemis.de/nexus/content/repositories/mbeddr/com/jetbrains/jdk/jbr_jcef/maven-metadata.xml&label=jbr_jcef&color=inactive&query=.//versioning/latest)](https://projects.itemis.de/nexus/#nexus-search;gav~com.jetbrains.jdk~jbr_jcef~~~)
-[![projects.itemis.de: jbr nomod](https://img.shields.io/badge/dynamic/xml?url=https://projects.itemis.de/nexus/content/repositories/mbeddr/com/jetbrains/jdk/jbr_nomod/maven-metadata.xml&label=jbr_nomod&color=inactive&query=.//versioning/latest)](hhttps://projects.itemis.de/nexus/#nexus-search;gav~com.jetbrains.jdk~jbr_nomod~~~)
-[![projects.itemis.de: jbrsdk](https://img.shields.io/badge/dynamic/xml?url=https://projects.itemis.de/nexus/content/repositories/mbeddr/com/jetbrains/jdk/jbrsdk/maven-metadata.xml&label=jbrsdk&color=inactive&query=.//versioning/latest)](https://projects.itemis.de/nexus/#nexus-search;gav~com.jetbrains.jdk~jbrsdk~~~)
-
 > JetBrains Runtime is a fork of OpenJDK available for Windows, Mac OS X, and Linux. It includes a number of enhancements in font rendering, HiDPI support, windowing/focus subsystems, performance improvements and bugfixes.
 
 This repository contains a script for publishing JetBrains Runtime (JBR and JBR SDK) as Maven artifacts to itemis Nexus, so it can be used in our platforms and other projects builds:
