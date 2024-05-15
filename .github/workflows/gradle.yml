@@ -9,7 +9,7 @@ on:
       # Only on push events on master and mps branches
       - master
       - mps/*
-
+  workflow_dispatch:
 jobs:
   build:
 
