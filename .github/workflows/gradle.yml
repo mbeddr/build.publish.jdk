@@ -15,4 +15,4 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
       - name: Test publishing
-        run: ./gradlew publishToMavenLocal -Pjdk_version=21.0.4 -Pjdk_build=b631.2
+        run: ./gradlew publishToMavenLocal -PjdkVersion=21.0.4 -PjdkBuild=b631.2
