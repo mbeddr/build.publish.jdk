@@ -7,15 +7,15 @@ import de.undercouch.gradle.tasks.download.Download
 import org.gradle.api.publish.maven.internal.publication.MavenPomInternal
 
 group 'com.jetbrains.jdk'
-def versionString = provider {
-    if (!project.hasProperty('jdk_version')) {
-        throw new GradleException("Project property 'jdk_version' must be set")
+Provider<String> versionString = provider {
+    if (!project.hasProperty('jdkVersion')) {
+        throw new GradleException("Project property 'jdkVersion' must be set")
     }
-    if (!project.hasProperty('jdk_build')) {
-        throw new GradleException("Project property 'jdk_build' must be set")
+    if (!project.hasProperty('jdkBuild')) {
+        throw new GradleException("Project property 'jdkBuild' must be set")
     }
 
-    "$jdk_version-$jdk_build".toString()
+    "$jdkVersion-$jdkBuild".toString()
 }
 
 def architectures = [
@@ -73,7 +73,7 @@ distroTypes.each { distroType ->
 
     architectures.each { architecture ->
         def downloadTask = tasks.register('get_' + distroType + '_' + architecture, Download) {
-            def fileName = provider { "${distroType}-${jdk_version}-${architecture}-${jdk_build}.tar.gz".toString() }
+            def fileName = provider { "${distroType}-${jdkVersion}-${architecture}-${jdkBuild}.tar.gz".toString() }
 
             src fileName.map { "https://cache-redirector.jetbrains.com/intellij-jbr/$it" }
             dest layout.buildDirectory.file(fileName)
