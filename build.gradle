@@ -4,130 +4,106 @@ plugins {
 }
 
 import de.undercouch.gradle.tasks.download.Download
+import org.gradle.api.publish.maven.internal.publication.MavenPomInternal
 
 group 'com.jetbrains.jdk'
+def versionString = provider {
+    if (!project.hasProperty('jdk_version')) {
+        throw new GradleException("Project property 'jdk_version' must be set")
+    }
+    if (!project.hasProperty('jdk_build')) {
+        throw new GradleException("Project property 'jdk_build' must be set")
+    }
 
-def supportedPlatforms = ['osx', 'windows', 'linux']
+    "$jdk_version-$jdk_build".toString()
+}
+
+def architectures = [
+        'osx-aarch64',
+        'osx-x64',
+        'linux-aarch64',
+        'linux-x64',
+        'windows-aarch64',
+        'windows-x64'
+]
 
 def distroTypes = ['jbr_jcef', 'jbr', 'jbrsdk']
 
-
-
-for (platform in supportedPlatforms) {
-
-    def capitalizedPlatform = platform.capitalize()
-    for (distroType in distroTypes) {
-
-
-        def capitalizedDistroType = distroType.capitalize()
-        def supportedArchitectures = supportedArch(platform, distroType)
-
-        for (platformClassifier in supportedArchitectures) {
-
-            def downloadTask = tasks.create(name: downloadTaskName(capitalizedDistroType, capitalizedPlatform, platformClassifier), type: Download) {
-                def fileName = "${distroType}-${jdk_version}-${platformClassifier}-${jdk_build}.tar.gz"
-
-                logger.warn("https://cache-redirector.jetbrains.com/intellij-jbr/$fileName")
-                src "https://cache-redirector.jetbrains.com/intellij-jbr/$fileName"
-                //src "https://cache-redirector.jetbrains.com/intellij-jbr/$fileName"
-                dest "$buildDir/$fileName"
-                overwrite false
+MavenPublication createPublication(String distroType, Provider<String> versionString) {
+    project.publishing.publications.create(distroType, MavenPublication) {
+        artifactId distroType
+        pom {
+            ((MavenPomInternal) it).coordinates.version = versionString
+            licenses {
+                // official SPDX identifier
+                // see https://spdx.org/licenses/ for list
+                license {
+                    name = "GPL-2.0-only"
+                    url = versionString.map { "https://github.com/JetBrains/JetBrainsRuntime/blob/jb$it/LICENSE".toString() }
+                    comments = "GNU GENERAL PUBLIC LICENSE Version 2, June 1991"
+                    distribution = "repo"
+                }
+                license {
+                    name = "WITH Classpath-exception-2.0"
+                    url = versionString.map { "https://github.com/JetBrains/JetBrainsRuntime/blob/jb$it/ADDITIONAL_LICENSE_INFO".toString() }
+                    comments = "Oracle Classpath exception 2.0"
+                    distribution = "repo"
+                }
+                license {
+                    name = "WITH OpenJDK-assembly-exception-1.0"
+                    url = versionString.map { "https://github.com/JetBrains/JetBrainsRuntime/blob/jb$it/ASSEMBLY_EXCEPTION".toString() }
+                    comments = "OpenJDK Assembly exception 1.0"
+                    distribution = "repo"
+                }
+            }
+            organization {
+                name = "JetBrains s.r.o"
+                url = "https://www.jetbrains.com"
+            }
+            scm {
+                tag = versionString.map { "jb$it".toString() }
+                url = "https://github.com/JetBrains/JetBrainsRuntime.git"
             }
         }
     }
 }
 
-publishing {
-    for(distroType in distroTypes) {
-        publications.create(distroType, MavenPublication) {
-            for(platform in supportedPlatforms) {
-                for(platformClassifier in supportedArch(platform, distroType)) {
-                    def downloadTask = tasks.getByName(downloadTaskName(distroType.capitalize(),platform.capitalize(), platformClassifier))
-                    artifact(downloadTask.dest) {
-                        classifier platformClassifier
-                        builtBy downloadTask
-                        extension 'tgz'
+distroTypes.each { distroType ->
+    def publication = createPublication(distroType, versionString)
 
-                    }
-                }
-            }
-            artifactId distroType
-            version "${jdk_version}-${jdk_build}"
-            pom {
-                licenses {
-                    // official SPDX identifier
-                    // see https://spdx.org/licenses/ for list
-                    license {
-                        name = "GPL-2.0-only"
-                        url = "https://github.com/JetBrains/JetBrainsRuntime/blob/jb${jdk_version}-${jdk_build}/LICENSE"
-                        comments = "GNU GENERAL PUBLIC LICENSE Version 2, June 1991"
-                        distribution = "repo"
-                    }
-                    license {
-                        name = "WITH Classpath-exception-2.0"
-                        url = "https://github.com/JetBrains/JetBrainsRuntime/blob/jb${jdk_version}-${jdk_build}/ADDITIONAL_LICENSE_INFO"
-                        comments = "Oracle Classpath exception 2.0"
-                        distribution = "repo"
-                    }
-                    license {
-                        name = "WITH OpenJDK-assembly-exception-1.0"
-                        url = "https://github.com/JetBrains/JetBrainsRuntime/blob/jb${jdk_version}-${jdk_build}/ASSEMBLY_EXCEPTION"
-                        comments = "OpenJDK Assembly exception 1.0"
-                        distribution = "repo"
-                    }
-                }
-                organization {
-                    name = "JetBrains s.r.o"
-                    url = "https://www.jetbrains.com"
-                }
-                scm {
-                    tag = "jb${jdk_version}-${jdk_build}"
-                    url = "https://github.com/JetBrains/JetBrainsRuntime.git"
-                }
-            }
+    architectures.each { architecture ->
+        def downloadTask = tasks.register('get_' + distroType + '_' + architecture, Download) {
+            def fileName = provider { "${distroType}-${jdk_version}-${architecture}-${jdk_build}.tar.gz".toString() }
+
+            src fileName.map { "https://cache-redirector.jetbrains.com/intellij-jbr/$it" }
+            dest layout.buildDirectory.file(fileName)
+            overwrite false
+        }
+
+        publication.artifact(downloadTask) {
+            classifier architecture
+            extension 'tgz'
         }
     }
-}
-
-private String downloadTaskName(capitalizedDistroType, capitalizedPlatform, platformClassifier) {
-    'get' + capitalizedDistroType + capitalizedPlatform + platformClassifier
-}
-
-private List<String> supportedArch(platform, distroType) {
-    if(platform == 'osx')
-    {
-        return ["${platform}-x64", "${platform}-aarch64"]
-    } else if (platform == 'windows') {
-        return ["${platform}-x64"]
-    } else if (platform == 'linux') {
-        return ["${platform}-x64", "${platform}-aarch64"]
-    }
-    throw new GradleException("unsupported platform")
 }
 
 publishing {
     repositories {
         maven {
             name = "itemisCloud"
-            url = project.version.contains("SNAPSHOT")
-                    ? uri("https://artifacts.itemis.cloud/repository/maven-mps-snapshots/")
-                    : uri("https://artifacts.itemis.cloud/repository/maven-mps-releases/")
-            if (project.hasProperty("artifacts.itemis.cloud.user") && project.hasProperty("artifacts.itemis.cloud.pw")) {
-                credentials {
-                    username = project.findProperty("artifacts.itemis.cloud.user")
-                    password = project.findProperty("artifacts.itemis.cloud.pw")
-                }
+            url = uri("https://artifacts.itemis.cloud/repository/maven-mps-releases/")
+            credentials {
+                username = project.findProperty("artifacts.itemis.cloud.user")
+                password = project.findProperty("artifacts.itemis.cloud.pw")
             }
         }
 
         maven {
             name = "GitHubPackages"
             url = uri("https://maven.pkg.github.com/mbeddr/build.publish.jdk")
-            if(project.hasProperty("gpr.token")) {
-                credentials {
-                    username = project.findProperty("gpr.user")
-                    password = project.findProperty("gpr.token")
-                }
+            credentials {
+                username = project.findProperty("gpr.user")
+                password = project.findProperty("gpr.token")
             }
         }
     }
