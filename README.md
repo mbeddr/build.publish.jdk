@@ -24,3 +24,18 @@ For more information, visit the [JetBrains runtime](https://github.com/JetBrains
 The script for older MPS versions can be found in the mps/**X** branches where **X** is a major MPS version.
 
 To change the JBR version for publishing, edit `gradle.properties` file.
+
+## MPS - JBR table
+
+| MPS Version | JDK Version | JDK Build | Full JBR string    |
+|-------------|-------------|-----------|--------------------|
+| 2020.2      | 11_0_9      | b944.49   | 11_0_9-b944.49     |
+| 2020.3      | 11_0_10     | b1145.96  | 11_0_10-b1145.96   |
+| 2021.1      | 11_0_11     | b1341.60  | 11_0_11-b1341.60   |
+| 2021.2      | 11_0_12     | b1504.28  | 11.0.12-b1504.28   |
+| 2021.3      | 11_0_14_1   | b1751.46  | 11.0.14.1-b1751.46 |
+| 2022.2      | 17.0.6      | b469.82   | 17.0.6-b469.82     |
+| 2022.3      | 17.0.6      | b653.34   | 17.0.6-b653.34     |
+| 2023.2      | 17.0.12     | b1000.54  | 17.0.12-b1000.54   |
+| 2023.3      | 17.0.12     | b1087.25  | 17.0.12-b1087.25   |
+| 2024.1      | 17.0.11     | b1207.30  | 17.0.11-b1207.30   |
