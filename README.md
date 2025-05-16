@@ -23,7 +23,7 @@ For more information, visit the [JetBrains runtime](https://github.com/JetBrains
 
 The script for older MPS versions can be found in the mps/**X** branches where **X** is a major MPS version.
 
-To change the JBR version for publishing, edit `gradle.properties` file.
+For publishing, run parametrized build in the CI providing `jdkVersion` and `jdkBuild` values for the JBR version to publish as project properties (see table below for examples).
 
 ## MPS - JBR table
 
@@ -39,3 +39,4 @@ To change the JBR version for publishing, edit `gradle.properties` file.
 | 2023.2      | 17.0.12     | b1000.54  | 17.0.12-b1000.54   |
 | 2023.3      | 17.0.12     | b1087.25  | 17.0.12-b1087.25   |
 | 2024.1      | 17.0.11     | b1207.30  | 17.0.11-b1207.30   |
+| 2025.1      | 21.0.6      | b895.109  | 21.0.6-b895.109    |
