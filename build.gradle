@@ -7,16 +7,33 @@ import de.undercouch.gradle.tasks.download.Download
 import org.gradle.api.publish.maven.internal.publication.MavenPomInternal
 
 group 'com.jetbrains.jdk'
-Provider<String> versionString = provider {
-    if (!project.hasProperty('jdkVersion')) {
-        throw new GradleException("Project property 'jdkVersion' must be set")
-    }
-    if (!project.hasProperty('jdkBuild')) {
-        throw new GradleException("Project property 'jdkBuild' must be set")
+
+// Parses a full JBR version string in one of the following formats:
+//   25.0.3b508.4
+//   25.0.3-b508.4
+//   25.0.3+9-b508.16   (the "+9" part is ignored)
+// into the version part (e.g. "25.0.3") and the build part (e.g. "b508.4").
+def jbrVersionPattern = ~/^(\d+(?:\.\d+)*)(?:\+\d+)?-?(b\d+(?:\.\d+)*)$/
+
+Provider<List<String>> versionParts = provider {
+    if (project.hasProperty('jbrVersion')) {
+        def matcher = jbrVersionPattern.matcher(project.jbrVersion.toString())
+        if (!matcher.matches()) {
+            throw new GradleException("Project property 'jbrVersion' has an unrecognized format: '$jbrVersion'")
+        }
+        return [matcher.group(1), matcher.group(2)]
     }
 
-    "$jdkVersion-$jdkBuild".toString()
+    // 'jdkVersion' and 'jdkBuild' are deprecated; use 'jbrVersion' instead.
+    if (project.hasProperty('jdkVersion') && project.hasProperty('jdkBuild')) {
+        logger.warn("Project properties 'jdkVersion' and 'jdkBuild' are deprecated; use 'jbrVersion' instead")
+        return [project.jdkVersion.toString(), project.jdkBuild.toString()]
+    }
+
+    throw new GradleException("Project property 'jbrVersion' must be set")
 }
+
+Provider<String> versionString = versionParts.map { "${it[0]}-${it[1]}".toString() }
 
 def architectures = [
         'osx-aarch64',
@@ -73,7 +90,7 @@ distroTypes.each { distroType ->
 
     architectures.each { architecture ->
         def downloadTask = tasks.register('get_' + distroType + '_' + architecture, Download) {
-            def fileName = provider { "${distroType}-${jdkVersion}-${architecture}-${jdkBuild}.tar.gz".toString() }
+            def fileName = versionParts.map { "${distroType}-${it[0]}-${architecture}-${it[1]}.tar.gz".toString() }
 
             src fileName.map { "https://cache-redirector.jetbrains.com/intellij-jbr/$it" }
             dest layout.buildDirectory.file(fileName)
