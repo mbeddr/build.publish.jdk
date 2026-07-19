@@ -23,9 +23,31 @@ For more information, visit the [JetBrains runtime](https://github.com/JetBrains
 
 The script for older MPS versions can be found in the mps/**X** branches where **X** is a major MPS version.
 
-For publishing, run parametrized build in the CI providing `jdkVersion` and `jdkBuild` values for the JBR version to publish as project properties (see table below for examples).
+For publishing, trigger the parametrized build in CI and specify **either**:
+
+- `jbrVersion` — the full JBR version to publish, e.g. `21.0.6-b895.109` (see the table below); or
+- `mpsVersion` — an MPS release (e.g. `2025.1`) or pre-release build number (e.g. `261.25134.10210`). The matching JBR
+  version is looked up automatically from the `com.jetbrains.mps:mps-jbr` marker POM (see below). For releases this works
+  for MPS 2023.3.1 and later; for earlier MPS versions, pass `jbrVersion` directly.
+
+Set only one of the two. The legacy `jdkVersion` + `jdkBuild` properties are still accepted but deprecated in favor of
+`jbrVersion`.
+
+## Looking up the JBR for an MPS version
+
+Since MPS 2023.3.1, [build.publish.mps](https://github.com/mbeddr/build.publish.mps) publishes a marker artifact
+`com.jetbrains.mps:mps-jbr` for each MPS release, and
+[publish-mps-prereleases](https://github.com/mbeddr/publish-mps-prereleases) publishes the same marker for each MPS
+pre-release build. It is a dependency-only POM whose single dependency is the exact `com.jetbrains.jdk:jbr_jcef` version
+that MPS is built with (derived from `mps.runtimeBuild` in the distribution's `build.properties`).
+
+Releases (in `maven-mps`) and pre-releases (in `maven-mps-prereleases`) use the same coordinates; this build picks the
+repository from the shape of the version. This is the same lookup performed when you publish by `mpsVersion`.
 
 ## MPS - JBR table
+
+The table below is a convenience snapshot. Since MPS 2023.3.1 the authoritative mapping is the `mps-jbr` marker artifact
+described above.
 
 | MPS Version | JDK Version | JDK Build | Full JBR string    |
 |-------------|-------------|-----------|--------------------|
@@ -38,5 +60,10 @@ For publishing, run parametrized build in the CI providing `jdkVersion` and `jdk
 | 2022.3      | 17.0.6      | b653.34   | 17.0.6-b653.34     |
 | 2023.2      | 17.0.12     | b1000.54  | 17.0.12-b1000.54   |
 | 2023.3      | 17.0.12     | b1087.25  | 17.0.12-b1087.25   |
+| 2023.3.1    | 17.0.9      | b1087.9   | 17.0.9-b1087.9     |
 | 2024.1      | 17.0.11     | b1207.30  | 17.0.11-b1207.30   |
+| 2024.3      | 21.0.5      | b631.16   | 21.0.5-b631.16     |
 | 2025.1      | 21.0.6      | b895.109  | 21.0.6-b895.109    |
+| 2025.2.1    | 21.0.8      | b1038.71  | 21.0.8-b1038.71    |
+| 2025.3      | 21.0.8      | b1163.69  | 21.0.8-b1163.69    |
+| 2026.1      | 25.0.3      | b329.124  | 25.0.3-b329.124    |
