@@ -15,22 +15,71 @@ group 'com.jetbrains.jdk'
 // into the version part (e.g. "25.0.3") and the build part (e.g. "b508.4").
 def jbrVersionPattern = ~/^(\d+(?:\.\d+)*)(?:\+\d+)?-?(b\d+(?:\.\d+)*)$/
 
+// Returns the trimmed value of a project property, or null if it is absent or blank. Blank values are treated as unset
+// so that a CI job can pass '-PjbrVersion= -PmpsVersion=2025.1' and have only the non-blank one take effect.
+def trimmedProperty = { String name ->
+    if (!project.hasProperty(name)) {
+        return null
+    }
+    def value = project.getProperty(name)?.toString()?.trim()
+    return value ?: null
+}
+
+// Looks up the JBR version that a given MPS version is built with by reading the 'com.jetbrains.mps:mps-jbr' marker POM.
+// The marker is a dependency-only POM whose single dependency is the matching 'com.jetbrains.jdk:jbr_jcef' version.
+//
+// Both released and pre-release MPS builds publish the marker under the same coordinates but into different
+// repositories, distinguished by the shape of the version:
+//   - releases look like a year, e.g. '2025.1', '2024.3.2', '2026.1-RC1' -> 'maven-mps'
+//   - pre-releases are build numbers, e.g. '261.25134.10210'            -> 'maven-mps-prereleases'
+def resolveJbrVersionFromMps = { String mpsVersion ->
+    def isRelease = mpsVersion ==~ /^\d{4}\..*/
+    def repository = isRelease ? "maven-mps" : "maven-mps-prereleases"
+    def url = "https://artifacts.itemis.cloud/repository/${repository}/com/jetbrains/mps/mps-jbr/${mpsVersion}/mps-jbr-${mpsVersion}.pom"
+    String pom
+    try {
+        pom = new URL(url).text
+    } catch (IOException e) {
+        def hint = isRelease
+                ? "The 'mps-jbr' marker is only published for MPS 2023.3.1 and later; for earlier versions pass 'jbrVersion' directly."
+                : "Ensure a pre-release build publishing the 'mps-jbr' marker exists for this version, or pass 'jbrVersion' directly."
+        throw new GradleException("Could not fetch the JBR marker POM for MPS ${mpsVersion} from ${url}. ${hint}", e)
+    }
+
+    def matcher = pom =~ /(?s)<artifactId>\s*jbr_jcef\s*<\/artifactId>\s*<version>([^<]+)<\/version>/
+    if (!matcher.find()) {
+        throw new GradleException("The JBR marker POM for MPS ${mpsVersion} does not declare a 'jbr_jcef' dependency: ${url}")
+    }
+    return matcher.group(1).trim()
+}
+
 Provider<List<String>> versionParts = provider {
-    if (project.hasProperty('jbrVersion')) {
-        def matcher = jbrVersionPattern.matcher(project.jbrVersion.toString())
+    def jbrVersion = trimmedProperty('jbrVersion')
+    def mpsVersion = trimmedProperty('mpsVersion')
+
+    if (jbrVersion && mpsVersion) {
+        throw new GradleException("Set only one of 'jbrVersion' or 'mpsVersion', not both")
+    }
+
+    def fullVersion = jbrVersion ?: (mpsVersion ? resolveJbrVersionFromMps(mpsVersion) : null)
+    if (fullVersion) {
+        def matcher = jbrVersionPattern.matcher(fullVersion)
         if (!matcher.matches()) {
-            throw new GradleException("Project property 'jbrVersion' has an unrecognized format: '$jbrVersion'")
+            throw new GradleException("JBR version '${fullVersion}' has an unrecognized format" +
+                    (mpsVersion ? " (resolved from MPS ${mpsVersion})" : ""))
         }
         return [matcher.group(1), matcher.group(2)]
     }
 
     // 'jdkVersion' and 'jdkBuild' are deprecated; use 'jbrVersion' instead.
-    if (project.hasProperty('jdkVersion') && project.hasProperty('jdkBuild')) {
+    def jdkVersion = trimmedProperty('jdkVersion')
+    def jdkBuild = trimmedProperty('jdkBuild')
+    if (jdkVersion && jdkBuild) {
         logger.warn("Project properties 'jdkVersion' and 'jdkBuild' are deprecated; use 'jbrVersion' instead")
-        return [project.jdkVersion.toString(), project.jdkBuild.toString()]
+        return [jdkVersion, jdkBuild]
     }
 
-    throw new GradleException("Project property 'jbrVersion' must be set")
+    throw new GradleException("One of 'jbrVersion' or 'mpsVersion' must be set")
 }
 
 Provider<String> versionString = versionParts.map { "${it[0]}-${it[1]}".toString() }
