@@ -84,6 +84,18 @@ Provider<List<String>> versionParts = provider {
 
 Provider<String> versionString = versionParts.map { "${it[0]}-${it[1]}".toString() }
 
+// When running under TeamCity, report the resolved JBR version as the build number. Builds triggered by 'mpsVersion'
+// don't know the JBR version up front, so the build number can't be composed from the trigger parameters; setting it
+// here labels every build with the version actually being published. TeamCity reads the service message from stdout.
+// See https://www.jetbrains.com/help/teamcity/service-messages.html#Reporting+Build+Number
+if (System.getenv("TEAMCITY_VERSION")) {
+    gradle.taskGraph.whenReady { graph ->
+        if (graph.allTasks.any { it.name.startsWith("publish") }) {
+            println "##teamcity[buildNumber '${versionString.get()}']"
+        }
+    }
+}
+
 def architectures = [
         'osx-aarch64',
         'osx-x64',
